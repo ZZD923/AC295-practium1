@@ -33,12 +33,14 @@ class SimilarImage(Resource):
             'image_file': open('frontend_upload.jpg','rb')
         }
         resp = requests.post(url, files=files)
-        return resp.text
+        imagebyte=io.BytesIO(resp.content)
+        imagebyte.seek(0)
+        return send_file(imagebyte, mimetype='image/jpeg')
 
 api.add_resource(GetImage, '/GetImage')
 api.add_resource(SimilarImage, '/SimilarImage')
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8081, debug=True)
     
 

@@ -5,9 +5,23 @@ import dask.dataframe as dd
 import pandas as pd
 import numpy as np
 import requests
+import tensorflow as tf
+from dask.diagnostics import ProgressBar
 
 app = Flask(__name__)
 api = Api(app)
+
+def read_and_resize(filename, resize_dim = (32,32)):
+    im = Image.open('gap_images/'+ filename).convert('L')
+    im = np.array(im)
+    im = np.expand_dims(im, axis=2)
+    resize_im = tf.cast(im, tf.float32)/255.
+    resize_im = tf.image.resize(resize_im, resize_dim)
+    return resize_im
+
+def generate_sim_score(filepath, resized_input):
+    im = read_and_resize(filepath)
+    return np.sum(im*resized_input)/np.sqrt(np.sum(im*im) * np.sum(resized_input*resized_input))
 
 class GetSimilarImage(Resource):
     def get(self):
@@ -15,8 +29,18 @@ class GetSimilarImage(Resource):
         return "Please use post method"
     def post(self):
         image = request.files['image_file']
-        input_image=Image.open(image)
-        return Response(response=f'Size of image {input_image.size}',status=200)
+        input_image=Image.open(image).convert('L')
+        input_image = np.array(input_image)
+        input_image = np.expand_dims(input_image, axis=2)
+        resize_image = tf.cast(input_image, tf.float32)/255.
+        resize_image= tf.image.resize(resize_image, (32,32))
+        meta = dd.read_csv('metadata.csv')
+        meta['similarity']=meta['file_id'].apply(generate_sim_score,resized_input=resize_image,meta=('x', float))
+        with ProgressBar():
+            largest_row=meta.nlargest(1,'similarity').compute()
+        image_id=largest_row['file_id'].values[0]
+        image_path= 'gap_images/'+image_id
+        return send_file(image_path, mimetype='image/jpeg')
 
 class GetImagebyname(Resource):
     def get(self):
