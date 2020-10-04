@@ -25,7 +25,11 @@ class GetImagebyname(Resource):
     def post(self):
         image_name = request.get_json()['image_name'] 
         df=dd.read_csv("metadata.csv")
-        df_select=df[df['original_image_name']==image_name+'.jpg']
+        if image_name[-4:]!='.jpg':
+            full_image_name=image_name+'.jpg'
+        else:
+            full_image_name=image_name
+        df_select=df[df['original_image_name']==full_image_name]
         image_id=df_select.file_id.compute().values
         if image_id.shape[0]==0:
             return Response(response=f'No such image {image_name} in the database',status=400)
