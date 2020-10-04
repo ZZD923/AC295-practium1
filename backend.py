@@ -37,8 +37,8 @@ class GetSimilarImage(Resource):
         meta = dd.read_csv('metadata.csv')
         meta['similarity']=meta['file_id'].apply(generate_sim_score,resized_input=resize_image,meta=('x', float))
         with ProgressBar():
-            largest_row=meta.nlargest(1,'similarity').compute()
-        image_id=largest_row['file_id'].values[0]
+            largest_row=meta.nlargest(2,'similarity').compute()
+        image_id=largest_row['file_id'].values[1]
         image_path= 'gap_images/'+image_id
         return send_file(image_path, mimetype='image/jpeg')
 
