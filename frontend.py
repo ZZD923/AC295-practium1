@@ -14,9 +14,12 @@ class GetImage(Resource):
         image_name = request.form['imagename']
         db_url = "http://0.0.0.0:8082/GetImagebyname"
         resp = requests.post(url=db_url,json={'image_name':image_name})
-        imagebyte=io.BytesIO(resp.content)
-        imagebyte.seek(0)
-        return send_file(imagebyte, mimetype='image/jpeg')
+        if resp.status_code==400:
+            return resp.text
+        else:
+            imagebyte=io.BytesIO(resp.content)
+            imagebyte.seek(0)
+            return send_file(imagebyte, mimetype='image/jpeg')
 
 class SimilarImage(Resource):
     def get(self):

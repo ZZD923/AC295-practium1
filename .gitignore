@@ -7,6 +7,5 @@
 !.gitignore
 !*.md
 !*.py
-!*.ipynb
-*.ipynb_checkpoint
 !*/
+.ipynb_checkpoints

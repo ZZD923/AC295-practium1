@@ -1,8 +1,10 @@
 from flask import Flask,request,Response,send_file
 from flask_restful import Resource,Api
 from PIL import Image
+import dask.dataframe as dd
+import pandas as pd
+import numpy as np
 import requests
-
 
 app = Flask(__name__)
 api = Api(app)
@@ -22,8 +24,14 @@ class GetImagebyname(Resource):
         return "Please use post method"
     def post(self):
         image_name = request.get_json()['image_name'] 
-        image_path= 'gap_images/'+image_name
-        return send_file(image_path, mimetype='image/jpeg')
+        df=dd.read_csv("metadata.csv")
+        df_select=df[df['original_image_name']==image_name+'.jpg']
+        image_id=df_select.file_id.compute().values
+        if image_id.shape[0]==0:
+            return Response(response=f'No such image {image_name} in the database',status=400)
+        else:
+            image_path= 'gap_images/'+image_id[0]
+            return send_file(image_path, mimetype='image/jpeg')
 
 api.add_resource(GetSimilarImage, '/GetSimilarImage')
 api.add_resource(GetImagebyname, '/GetImagebyname')
