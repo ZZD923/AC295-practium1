@@ -48,18 +48,38 @@ class GetImagebyname(Resource):
         return "Please use post method"
     def post(self):
         image_name = request.get_json()['image_name'] 
+        artist = request.get_json()['artist'] 
+        collection = request.get_json()['collection'] 
+        genre = request.get_json()['genre'] 
         df=dd.read_csv("metadata.csv")
-        if image_name[-4:]!='.jpg':
-            full_image_name=image_name+'.jpg'
+        if image_name !='':
+            if image_name[-4:]!='.jpg':
+                full_image_name=image_name+'.jpg'
+            else:
+                full_image_name=image_name
+            df_select=df[df['original_image_name']==full_image_name]
+            image_id=df_select.file_id.compute().values
+            if image_id.shape[0]==0:
+                return Response(response=f'No such image {image_name} in the database',status=400)
+            else:
+                image_path= 'gap_images/'+image_id[0]
+                return send_file(image_path, mimetype='image/jpeg')
+        elif artist=='' and collection=='' and genre=='':
+            return Response(response=f'No information provided',status=400)
         else:
-            full_image_name=image_name
-        df_select=df[df['original_image_name']==full_image_name]
-        image_id=df_select.file_id.compute().values
-        if image_id.shape[0]==0:
-            return Response(response=f'No such image {image_name} in the database',status=400)
-        else:
-            image_path= 'gap_images/'+image_id[0]
-            return send_file(image_path, mimetype='image/jpeg')
+            if artist!='':
+                df=df[df['Artist']==artist]
+            if collection!='':
+                df=df[df['Collection']==collection]
+            if genre !='':
+                df=df[df['Genre']==genre]
+            image_id=df.file_id.compute().values
+            if image_id.shape[0]==0:
+                return Response(response=f'No such image {image_name} in the database',status=400)
+            else:
+                image_path= 'gap_images/'+image_id[0]
+                return send_file(image_path, mimetype='image/jpeg')
+            
 
 api.add_resource(GetSimilarImage, '/GetSimilarImage')
 api.add_resource(GetImagebyname, '/GetImagebyname')

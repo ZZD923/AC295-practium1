@@ -12,8 +12,11 @@ class GetImage(Resource):
         return make_response(render_template('index.html'),200,headers)
     def post(self):
         image_name = request.form['imagename']
+        artist = request.form['artist']
+        collection = request.form['collection']
+        genre = request.form['genre']
         db_url = "http://0.0.0.0:8082/GetImagebyname"
-        resp = requests.post(url=db_url,json={'image_name':image_name})
+        resp = requests.post(url=db_url,json={'image_name':image_name,'artist':artist,'collection':collection,'genre':genre})
         if resp.status_code==400:
             return resp.text
         else:
