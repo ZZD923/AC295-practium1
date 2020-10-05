@@ -13,3 +13,5 @@
 !*.json
 .ipynb_checkpoints
 !*.txt
+!*.html
+!*.jpg
