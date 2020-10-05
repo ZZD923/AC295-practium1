@@ -59,7 +59,7 @@ class GetImagebyname(Resource):
             if image_id.shape[0]==0:
                 return Response(response=f'No such image {image_name} in the database',status=400)
             else:
-                image_path= 'gap_images/'+image_id[0]
+                image_path= gap_img_path+image_id[0]
                 return send_file(image_path, mimetype='image/jpeg')
         elif artist=='' and collection=='' and genre=='':
             return Response(response=f'No information provided',status=400)
@@ -74,7 +74,7 @@ class GetImagebyname(Resource):
             if image_id.shape[0]==0:
                 return Response(response=f'No such image {image_name} in the database',status=400)
             else:
-                image_path= 'gap_images/'+image_id[0]
+                image_path= gap_img_path+image_id[0]
                 return send_file(image_path, mimetype='image/jpeg')
             
 
