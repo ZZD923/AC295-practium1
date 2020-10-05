@@ -2,6 +2,7 @@ from flask import Flask,render_template,request,make_response,send_file
 from flask_restful import Resource,Api
 import requests
 import io
+import json
 
 app = Flask(__name__)
 api = Api(app)
@@ -30,11 +31,15 @@ class SimilarImage(Resource):
         return make_response(render_template('similar_image.html'),200,headers)
     def post(self):
         image = request.files['image_file']
+        method = request.form['method']
         image.save('frontend_upload.jpg')
         url = "http://0.0.0.0:8082/GetSimilarImage"
+        method ={'method':method}
         files = {
+            'json': (None, json.dumps(method), 'application/json'),
             'image_file': open('frontend_upload.jpg','rb')
         }
+        
         resp = requests.post(url, files=files)
         imagebyte=io.BytesIO(resp.content)
         imagebyte.seek(0)

@@ -1,6 +1,7 @@
 from flask import Flask,request,Response,send_file
 from flask_restful import Resource,Api
 from PIL import Image
+import json
 import dask.dataframe as dd
 import pandas as pd
 import numpy as np
@@ -29,18 +30,23 @@ class GetSimilarImage(Resource):
         return "Please use post method"
     def post(self):
         image = request.files['image_file']
-        input_image=Image.open(image).convert('L')
-        input_image = np.array(input_image)
-        input_image = np.expand_dims(input_image, axis=2)
-        resize_image = tf.cast(input_image, tf.float32)/255.
-        resize_image= tf.image.resize(resize_image, (32,32))
-        meta = dd.read_csv('metadata.csv')
-        meta['similarity']=meta['file_id'].apply(generate_sim_score,resized_input=resize_image,meta=('x', float))
-        with ProgressBar():
-            largest_row=meta.nlargest(2,'similarity').compute()
-        image_id=largest_row['file_id'].values[1]
-        image_path= 'gap_images/'+image_id
-        return send_file(image_path, mimetype='image/jpeg')
+        method=json.loads(request.form['json'])
+        if method['method']=='cosine similarity':
+            input_image=Image.open(image).convert('L')
+            input_image = np.array(input_image)
+            input_image = np.expand_dims(input_image, axis=2)
+            resize_image = tf.cast(input_image, tf.float32)/255.
+            resize_image= tf.image.resize(resize_image, (32,32))
+            meta = dd.read_csv('metadata.csv')
+            meta['similarity']=meta['file_id'].apply(generate_sim_score,resized_input=resize_image,meta=('x', float))
+            with ProgressBar():
+                largest_row=meta.nlargest(2,'similarity').compute()
+            image_id=largest_row['file_id'].values[1]
+            image_path= 'gap_images/'+image_id
+            return send_file(image_path, mimetype='image/jpeg')
+        else:
+            ###Todo, if using autoencoder
+            pass
 
 class GetImagebyname(Resource):
     def get(self):
